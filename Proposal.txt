@@ -1,0 +1,32 @@
+Job details
+Upwork Talent Accelerator: AI Chatbot Developer
+AI Chatbot Development Invite Only Posted May 21, 2026
+Description:
+We’re looking for skilled chatbot developers who want to build their business reputation on Upwork by completing a simulated project. Based on the results of the simulated project, freelancers will receive feedback and a rating that can be viewed by clients on the platform.
+
+The simulated project focuses on building a customer support chatbot that could be used by a small e-commerce business selling outdoor apparel and camping gear. All business context, FAQs, and mock data will be provided so you can complete the project output independently. Your deliverables may be used to train Upwork and/or third-party AI models.
+
+Scope of Work
+Through this simulated project, freelancers will be asked to:
+Build a chatbot that handles common customer support scenarios
+Implement key use cases including:
+Order tracking
+Returns and exchanges
+Product recommendations
+Human handoff
+Design clear, user-friendly conversation flows
+
+Eligibility Requirements:
+In order to be eligible for this simulated project, freelancers must have:
+Experience with chatbot tools (e.g., Botpress, Voiceflow, Diaglogflow) or custom solutions
+Ability to design and implement conversational flows
+Strong understanding of customer support interactions
+
+Deliverables:
+Freelancers will generate the following outputs in the project:
+Working chatbot (export file or code repository)
+Short video demo (203 minutes) showing core use cases
+
+Additional Notes:
+All project materials and mock data will be provided
+No live deployment required lessMore/Less about

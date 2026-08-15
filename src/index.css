@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   THEME — CSS Custom Properties
+   Light: :root   |   Dark: html.dark
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Photo overlay — soft neutral frost */
+  --bg-photo-overlay: rgba(255, 255, 255, 0.35);
+
+  /* Main glass container — clean white with subtle depth */
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 24px 64px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  /* Top header panel */
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --header-border: rgba(0, 0, 0, 0.05);
+  --header-btn-bg: #f4f4f5;
+  --header-btn-border: rgba(0, 0, 0, 0.08);
+  --header-btn-text: #18181b;
+
+  /* Floating capsule input */
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.10);
+
+  /* Message bubbles — bot: soft cool gray, clean separation */
+  --bubble-bot-bg: #f4f4f5;
+  --bubble-bot-border: rgba(0, 0, 0, 0.06);
+  --bubble-user-bg: #059669;
+  --bubble-user-text: #ffffff;
+
+  /* Surfaces & insets */
+  --card-bg: #fafafa;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --inset-bg: #f4f4f5;
+  --inset-border: rgba(0, 0, 0, 0.06);
+  --surface-high: rgba(0, 0, 0, 0.03);
+
+  /* Quick action buttons — emerald accent on white */
+  --action-bg: #ffffff;
+  --action-border: rgba(5, 150, 105, 0.40);
+  --action-text: #065f46;
+  --action-icon: #059669;
+  --action-inner-glow: rgba(16, 185, 129, 0.08);
+
+  /* Chips */
+  --chip-bg: #f4f4f5;
+  --chip-border: rgba(0, 0, 0, 0.10);
+  --chip-text: #18181b;
+
+  /* Text tokens — neutral dark, modern */
+  --text-primary: #18181b;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+  --text-dim: #a1a1aa;
+  --divider: rgba(0, 0, 0, 0.06);
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.24);
+
+  --live-banner-bg: #ecfdf5;
+  --live-banner-border: rgba(5, 150, 105, 0.20);
+  --live-banner-text: #065f46;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  /* Photo overlay - deep atmospheric alpine tone */
+  --bg-photo-overlay: rgba(6, 12, 18, 0.30);
+
+  /* Main glass container */
+  --glass-bg: rgba(12, 20, 30, 0.50);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 32px 64px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  /* Top header panel — frosty translucent glass */
+  --header-bg: rgba(14, 22, 34, 0.40);
+  --header-border: rgba(255, 255, 255, 0.10);
+  --header-btn-bg: rgba(255, 255, 255, 0.06);
+  --header-btn-border: rgba(255, 255, 255, 0.12);
+  --header-btn-text: #cbd5e1;
+
+  /* Floating capsule input */
+  --input-bg: rgba(15, 25, 38, 0.70);
+  --input-border: rgba(255, 255, 255, 0.15);
+
+  /* Message bubbles */
+  --bubble-bot-bg: rgba(16, 26, 38, 0.65);
+  --bubble-bot-border: rgba(255, 255, 255, 0.11);
+  --bubble-user-bg: rgba(6, 95, 70, 0.88);
+  --bubble-user-text: #f0fdf4;
+
+  /* Surfaces & insets */
+  --card-bg: rgba(16, 26, 40, 0.58);
+  --card-border: rgba(255, 255, 255, 0.11);
+  --inset-bg: rgba(0, 0, 0, 0.30);
+  --inset-border: rgba(255, 255, 255, 0.08);
+  --surface-high: rgba(255, 255, 255, 0.05);
+
+  /* Quick action buttons */
+  --action-bg: rgba(255, 255, 255, 0.05);
+  --action-border: rgba(16, 185, 129, 0.35);
+  --action-text: #6ee7b7;
+  --action-icon: #10b981;
+  --action-inner-glow: rgba(16, 185, 129, 0.16);
+
+  /* Chips */
+  --chip-bg: rgba(255, 255, 255, 0.05);
+  --chip-border: rgba(255, 255, 255, 0.12);
+  --chip-text: #cbd5e1;
+
+  /* Text tokens */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --divider: rgba(255, 255, 255, 0.07);
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+
+  --live-banner-bg: rgba(7, 89, 133, 0.25);
+  --live-banner-border: rgba(14, 165, 233, 0.22);
+  --live-banner-text: #7dd3fc;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0; padding: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pearlShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes innerGlow {
+  0%, 100% { box-shadow: inset 0 0 8px 0px var(--action-inner-glow); }
+  50%      { box-shadow: inset 0 0 16px 3px var(--action-inner-glow); }
+}
+
+@keyframes themeSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.animate-fade-up  { animation: fadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in  { animation: fadeUp 0.20s ease-out both; }
+
+/* Claude-style pearl shimmer on thinking text */
+.thinking-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--text-dim) 0%,
+    rgba(200, 220, 210, 0.90) 40%,
+    var(--text-dim) 60%,
+    rgba(200, 220, 210, 0.90) 80%,
+    var(--text-dim) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pearlShimmer 2.4s ease-in-out infinite;
+}
+
+/* Capsule quick-action inner glow */
+.capsule-glow {
+  animation: innerGlow 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   GLASS UTILITY
+   ============================================================ */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Floating capsule input focus state */
+.floating-capsule:focus-within {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 10px 36px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+}
+
+/* ============================================================
+   SMOOTH THEME TRANSITIONS
+   ============================================================ */
+
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+.animate-fade-up, .animate-fade-in,
+.animate-spin, .animate-bounce, .animate-pulse,
+.capsule-glow, .thinking-shimmer,
+[class*="animate-[themeSpin"] {
+  transition: none !important;
+}
+
+/* ============================================================
+   MARKDOWN — theme-aware
+   ============================================================ */
+
+.md p  { margin: 0.3rem 0; line-height: 1.65; color: var(--text-secondary); font-size: 0.8125rem; }
+.md-user p, .md-user h2, .md-user h3, .md-user strong, .md-user em, .md-user a, .md-user code, .md-user li { color: inherit !important; -webkit-text-fill-color: inherit !important; }
+.md p:first-child { margin-top: 0; }
+.md p:last-child  { margin-bottom: 0; }
+
+.md h3 { font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 700; margin: 0.5rem 0 0.25rem; color: #10b981; }
+.md h2 { font-family: 'Outfit', sans-serif; font-size: 1rem;   font-weight: 700; margin: 0.6rem 0 0.3rem; color: var(--text-primary); }
+
+.md ul { margin: 0.3rem 0; padding-left: 1.1rem; list-style: disc; }
+.md li { margin: 0.15rem 0; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.6; }
+
+.md strong { font-weight: 600; color: var(--text-primary); }
+.md em     { color: var(--text-muted); font-style: italic; }
+.md a      { color: #10b981; text-decoration: underline; font-weight: 500; }
+.md code   {
+  background: var(--surface-high);
+  color: #67e8f9;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  font-size: 0.8em;
+  font-family: ui-monospace, monospace;
+}
