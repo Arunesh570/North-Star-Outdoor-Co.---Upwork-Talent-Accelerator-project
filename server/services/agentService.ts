@@ -51,19 +51,28 @@ export class AgentService {
     const classification = intentClassifier.classify(userText, currentContext);
     let resolvedIntent: IntentType = classification.intent;
 
-    // Post-classification validation: downgrade spurious order_tracking from Naive Bayes
-    if (
-      resolvedIntent === 'order_tracking' &&
-      classification.method === 'naive_bayes_classifier' &&
-      !currentContext.pendingQuestion
-    ) {
+    // Post-classification validation: downgrade spurious intents from Naive Bayes
+    if (classification.method === 'naive_bayes_classifier' && !currentContext.pendingQuestion) {
       const lowerText = userText.toLowerCase();
-      const ORDER_DOMAIN_KEYWORDS = ['order', 'package', 'shipment', 'tracking', 'delivery', 'parcel', 'shipped', 'deliver', 'ship'];
-      const hasOrderKeyword = ORDER_DOMAIN_KEYWORDS.some(kw => lowerText.includes(kw));
       const hasDigits = /\d/.test(userText);
+      const ORDER_KEYWORDS = ['order', 'package', 'shipment', 'tracking', 'delivery', 'parcel', 'shipped', 'deliver', 'ship'];
+      const hasOrderKeyword = ORDER_KEYWORDS.some(kw => lowerText.includes(kw));
 
-      if (!hasOrderKeyword && !hasDigits) {
-        resolvedIntent = 'fallback_scenario';
+      if (resolvedIntent === 'order_tracking') {
+        if (!hasOrderKeyword && !hasDigits) {
+          resolvedIntent = 'fallback_scenario';
+        }
+      } else if (resolvedIntent === 'order_cancellation') {
+        const CANCEL_KEYWORDS = ['cancel', 'cancellation', 'stop order', 'abort', 'don\'t want', 'dont want', 'not anymore', 'change size', 'wrong size', 'wrong item'];
+        if (!CANCEL_KEYWORDS.some(kw => lowerText.includes(kw)) && !hasDigits) {
+          resolvedIntent = 'fallback_scenario';
+        }
+      } else if (resolvedIntent === 'fallback_scenario' && hasOrderKeyword) {
+        const isOrderVerb = /\b(want|like|going|need|trying)\s+to\s+order\b/i.test(userText)
+          || /\border\s+(a|some|the|pizza|food|lunch|dinner|drinks?|coffee|clothes)\b/i.test(userText);
+        if (!isOrderVerb) {
+          resolvedIntent = 'order_tracking';
+        }
       }
     }
 
@@ -118,18 +127,62 @@ export class AgentService {
       }
     }
 
-    // Multi-turn context overrides:
-    // If we are waiting for a specific sub-turn response and the user didn't explicitly change topic
+    // Multi-turn context overrides with topic-shift detection:
+    // Only force the user into the pending flow if their message is relevant to it.
+    // If they said something completely unrelated, let them escape naturally.
     const breakoutIntents: IntentType[] = ['main_menu', 'gratitude_farewell', 'human_handoff'];
     if (currentContext.pendingQuestion && !breakoutIntents.includes(resolvedIntent)) {
-      if (currentContext.pendingQuestion.startsWith('cancel_') || currentContext.pendingQuestion === 'confirm_cancel') {
-        resolvedIntent = 'order_cancellation';
-      } else if (currentContext.pendingQuestion === 'order_number') {
-        resolvedIntent = 'order_tracking';
+      const lowerForFlow = userText.toLowerCase();
+      const hasDigitsForFlow = /\d/.test(userText);
+      let isRelevantToFlow = true;
+
+      if (currentContext.pendingQuestion === 'order_number' || currentContext.pendingQuestion === 'cancel_order_number') {
+        const isOrderNoun = /\b(my|the|an|this|that)\s+order\b/i.test(userText)
+          || /\border\s*#/i.test(userText)
+          || /\border\s+\d/i.test(userText)
+          || /\b(package|shipment|tracking|parcel)\b/i.test(lowerForFlow);
+        const isShortResponse = userText.trim().split(/\s+/).length <= 3;
+        isRelevantToFlow = hasDigitsForFlow || isShortResponse || isOrderNoun;
       } else if (currentContext.pendingQuestion === 'recommendation_activity') {
-        resolvedIntent = 'product_recommendation';
+        isRelevantToFlow = true;
+      } else if (currentContext.pendingQuestion.startsWith('cancel_') || currentContext.pendingQuestion === 'confirm_cancel') {
+        const hasCancelRelevance = /\b(cancel|order|keep|confirm|yes|no|size|wrong|don't want|dont want)\b/i.test(lowerForFlow);
+        const isShortResponse = userText.trim().split(/\s+/).length <= 4;
+        isRelevantToFlow = hasCancelRelevance || hasDigitsForFlow || isShortResponse;
       } else if (currentContext.pendingQuestion === 'defect_order_number' || currentContext.pendingQuestion === 'delivered_order_action') {
-        resolvedIntent = 'defect_replacement';
+        const hasRelevance = /\b(order|replace|return|refund|damaged|broken|size|swap)\b/i.test(lowerForFlow);
+        const isShortResponse = userText.trim().split(/\s+/).length <= 4;
+        isRelevantToFlow = hasRelevance || hasDigitsForFlow || isShortResponse;
+      }
+
+      if (isRelevantToFlow) {
+        if (currentContext.pendingQuestion.startsWith('cancel_') || currentContext.pendingQuestion === 'confirm_cancel') {
+          resolvedIntent = 'order_cancellation';
+        } else if (currentContext.pendingQuestion === 'order_number') {
+          resolvedIntent = 'order_tracking';
+        } else if (currentContext.pendingQuestion === 'recommendation_activity') {
+          resolvedIntent = 'product_recommendation';
+        } else if (currentContext.pendingQuestion === 'defect_order_number' || currentContext.pendingQuestion === 'delivered_order_action') {
+          resolvedIntent = 'defect_replacement';
+        }
+      } else {
+        // Topic shift: clear pending state and re-validate the classified intent
+        currentContext.pendingQuestion = undefined;
+        currentContext.pendingRetries = 0;
+        const lowerText = userText.toLowerCase();
+        const hasDigits = /\d/.test(userText);
+
+        if (resolvedIntent === 'order_tracking') {
+          const ORDER_KW = ['order', 'package', 'shipment', 'tracking', 'delivery', 'parcel', 'shipped', 'deliver', 'ship'];
+          if (!ORDER_KW.some(kw => lowerText.includes(kw)) && !hasDigits) {
+            resolvedIntent = 'fallback_scenario';
+          }
+        } else if (resolvedIntent === 'order_cancellation') {
+          const CANCEL_KW = ['cancel', 'cancellation', 'stop order', 'abort', 'don\'t want', 'dont want', 'not anymore', 'change size', 'wrong size', 'wrong item'];
+          if (!CANCEL_KW.some(kw => lowerText.includes(kw)) && !hasDigits) {
+            resolvedIntent = 'fallback_scenario';
+          }
+        }
       }
     }
 

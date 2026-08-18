@@ -14,7 +14,7 @@ export const EXACT_ORDERS: Record<string, Order> = {
         name: 'North Star Alpine Ridge Waterproof Shell',
         quantity: 1,
         price: 189.00,
-        image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=400&auto=format&fit=crop&q=80',
+        image: 'https://images.unsplash.com/photo-1545594861-3bef43ff2fc8?w=400&auto=format&fit=crop&q=80',
       }
     ]
   },
@@ -76,7 +76,7 @@ export const PRODUCT_CATALOG: Product[] = [
     category: 'Apparel',
     price: 179.00,
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1545594861-3bef43ff2fc8?w=600&auto=format&fit=crop&q=80',
     description: '100% waterproof, breathable 3-layer technical shell with fully taped seams.',
     specs: '20,000mm Waterproof / Pit Zips / 380g',
     bestFor: 'Wet, rainy trail hiking and windy mountain ridges'

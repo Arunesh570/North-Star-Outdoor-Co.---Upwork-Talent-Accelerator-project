@@ -771,6 +771,22 @@ Additionally, a customer associate would like to contact you, and he can guide y
 
     // Sub-step D: Initial inquiry without order ID
     if (!orderId) {
+      if (context.pendingQuestion === 'cancel_order_number' && (context.pendingRetries || 0) >= 2) {
+        return {
+          message: "I'm having trouble locating your order. Would you like to connect with a **Live Agent**, or return to the main menu?",
+          quickReplies: ['Connect with Live Agent', 'Return to Main Menu'],
+          newContext: {}
+        };
+      }
+      if (context.pendingQuestion === 'cancel_order_number') {
+        return {
+          message: "I didn't recognize a valid order number. Our order numbers are 3 digits, for example **#111**, **#222**, or **#333**. Could you try again?",
+          quickReplies: ['Order #111', 'Order #222', 'Order #333', 'Return to Main Menu'],
+          newContext: {
+            pendingQuestion: 'cancel_order_number'
+          }
+        };
+      }
       return {
         message: 'I can help you with your cancellation or product exchange. What is your **order number**? (e.g. **#111**, **#222**, or **#333**)',
         quickReplies: ['Order #111', 'Order #222', 'Order #333', 'Return to Main Menu'],
@@ -1282,30 +1298,30 @@ Do you have a specific item or order you need warranty assistance with?`;
    * Deterministic Template: Polite Fallback (Clear explanation + options)
    */
   public renderFallback(userQuery: string): TemplateRenderResult {
-    const message = `I'm sorry, I didn't quite understand that question. 
+    const message = `That's outside what I can help with here. I'm the **North Star Support Bot** and I specialize in outdoor gear and order support only.
 
-As the **North Star Support Bot**, I have verified facts on:
-• **Order Tracking** (Try entering order numbers like **#111**, **#222**, or **#333**)
-• **Returns & Exchanges** (Our 30-day policy & returns portal)
-• **Product Recommendations** (Finding the right outdoor apparel and camping gear)
+Here's what I can assist you with:
+• **Order Tracking** (e.g. **#111**, **#222**, or **#333**)
+• **Returns & Exchanges** (30-day policy & returns portal)
+• **Product Recommendations** (Outdoor apparel & camping gear)
 • **Shipping Information** (Standard & expedited delivery times)
 
-Would you like to try one of these topics?`;
+Pick a topic below, or I can connect you with a live agent:`;
 
     return {
       message,
       card: {
         type: 'fallback_help',
         fallbackQuery: userQuery,
-        title: "I Didn't Catch That",
-        content: 'I specialize in order tracking, return policies, product recommendations, and shipping information.'
+        title: 'Outside My Scope',
+        content: 'I specialize in order tracking, return policies, product recommendations, and shipping information for North Star Outdoor Co.'
       },
       quickReplies: [
         'Track an Order',
         'Return Policy & Link',
         'Gear Recommendations',
         'Shipping Speeds',
-        'Return to Main Menu'
+        'Connect with Live Agent'
       ],
       newContext: {}
     };
