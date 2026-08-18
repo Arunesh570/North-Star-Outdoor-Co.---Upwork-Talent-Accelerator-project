@@ -24,7 +24,7 @@ Below is a breakdown of what was fixed, what additional hardening was added, and
 
 **What was done:**
 - Added a keyword validation gate before the category matcher. If the user's response contains none of the recognized outdoor/activity terms (rain, hiking, camp, boot, cold, etc.), the bot re-prompts with examples and quick-reply buttons.
-- After 2 failed attempts, it shows all gear categories as buttons plus a "Connect with Live Agent" option, so the user is never stuck.
+- After 3 total failed attempts, it shows all gear categories as buttons plus a "Connect with Live Agent" option, so the user is never stuck.
 
 ### 3. Live Agent State Persistence
 
@@ -44,7 +44,7 @@ Below is a breakdown of what was fixed, what additional hardening was added, and
 These weren't requested but they close loopholes that could show up during deeper testing:
 
 - **Human handoff from any flow:** If a user is mid-conversation (e.g., being asked for an order number) and says "I need to speak with a live agent", it now works immediately instead of being trapped in the current flow.
-- **Bounded retries:** No more infinite re-prompts. After 2 failed attempts in any flow (order number, recommendation activity), the bot offers an exit (main menu or live agent) instead of repeating the same question.
+- **Bounded retries:** No more infinite re-prompts. After 3 total failed attempts in any flow (order number, recommendation activity), the bot offers an exit (main menu or live agent) instead of repeating the same question.
 - **"My issue is resolved":** Clicking this button during live agent now gracefully closes the session with a thank-you message, rather than echoing it back as agent chat.
 - **Context leaking prevention:** Previously, viewing Order #111 and then asking "what is your return policy" would accidentally show a return flow for #111. Now the stale order context gets cleared when entering unrelated flows.
 - **Multiple order numbers:** If someone types "is 111 or 222 shipped", the bot asks which one to check instead of silently picking the first.
@@ -84,11 +84,12 @@ No API keys or external services needed.
 
 ## A Personal Note
 
-I genuinely enjoyed building this project and going deep on the NLP pipeline design. I have strong skills in full-stack development, conversational AI architecture, and system design, but I'm still early in building my Upwork portfolio.
+If this revision meets your expectations, I would really appreciate a strong rating. I'm actively building my Upwork profile and a review from someone who has tested my system in depth goes a long way for future opportunities.
 
-If this work meets your expectations, I would really appreciate any referral or recommendation you could offer. Having a solid reference from a reviewer who has seen my work first-hand would help me take on more complex projects and deliver the same quality to future clients.
+Also, if you or your team have upcoming projects where chatbot development, conversational AI, or full-stack work would be useful, I'd be glad to be considered. I can bring the same level of detail and care to the next one.
 
-Either way, thank you for the opportunity. This was a great learning experience and I'm glad the architecture came through clearly in the evaluation.
+And if you know anyone looking for this kind of work, I'm always open to referrals. Happy to prove myself on the next project too.
 
-Best,
+Thank you again for the opportunity and the clear feedback. Looking forward to hearing back.
+
 Arunesh

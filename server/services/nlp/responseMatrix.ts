@@ -516,8 +516,8 @@ Here are the verified specifications and overview for the **${matchedProd.name}*
           'rain', 'wet', 'storm', 'jacket', 'cold', 'winter', 'fleece', 'layer',
           'camp', 'tent', 'overnight', 'shelter', 'backpack', 'pack', 'multi-day',
           'trek', 'boot', 'shoe', 'foot', 'rocky', 'hike', 'hiking', 'trail',
-          'snow', 'ice', 'mountain', 'alpine', 'climb', 'gear', 'outdoor',
-          'adventure', 'weather', 'sleep', 'bag', 'warm', 'waterproof', 'dry'
+          'snow', 'mountain', 'alpine', 'climb', 'gear', 'outdoor',
+          'adventure', 'weather', 'sleeping', 'warm', 'waterproof', 'dry'
         ];
         const hasRecognizedKeyword = RECOGNIZED_ACTIVITY_KEYWORDS.some(kw => lower.includes(kw));
 
@@ -539,7 +539,7 @@ Here are the verified specifications and overview for the **${matchedProd.name}*
             };
           }
           return {
-            message: `I didn't quite catch that — could you tell me what kind of adventure or weather conditions you're planning for?\n\nFor example: *rainy trail hiking*, *cold weather layering*, *overnight camping*, *multi-day backpacking*, or *rocky alpine footwear*.`,
+            message: `We specialize in **outdoor apparel and camping gear** at North Star Outdoor Co., so I can only recommend products in that space.\n\nWhat kind of outdoor adventure or weather are you preparing for? Pick one below or describe your trip:`,
             quickReplies: [
               'Rainy & Wet Trail Hiking',
               'Cold Weather & Winter Layering',
@@ -1227,11 +1227,14 @@ Do you have a specific item or order you need warranty assistance with?`;
    * Deterministic Template: Active Live Agent Channel
    */
   public renderLiveAgentChat(userText: string): TemplateRenderResult {
-    const message = `*(Live Specialist Channel)*
-
-"Thanks for your message! I'm currently reviewing your notes on **\"${userText}\"**. A member of our small shop team in Colorado is handling this directly.
-
-Feel free to leave any extra details, or click **Return to Main Menu** below to continue using the automated North Star Bot anytime."`;
+    const responses = [
+      `Got it, I've noted that down. Our specialist is looking into this for you. Feel free to add any other details, or click **Return to Main Menu** when you're ready to switch back to the automated bot.`,
+      `Thanks for sharing that. Our team member is reviewing your case and will assist you shortly. You can continue chatting here or click **Return to Main Menu** anytime.`,
+      `Understood. I've passed that along to the specialist handling your case. Anything else you'd like to add, or would you like to return to the bot menu?`,
+      `Noted! The specialist has your full conversation history. Drop any additional details here, or hit **Return to Main Menu** to use the automated bot again.`
+    ];
+    const idx = Math.abs(userText.length * 7 + userText.charCodeAt(0)) % responses.length;
+    const message = `*(Live Specialist Channel)*\n\n${responses[idx]}`;
 
     return {
       message,
