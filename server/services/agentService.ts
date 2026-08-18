@@ -47,8 +47,24 @@ export class AgentService {
     }
 
     // 1. Layer 1: Intent Classification
-    const classification = intentClassifier.classify(userText);
+    const classification = intentClassifier.classify(userText, currentContext);
     let resolvedIntent: IntentType = classification.intent;
+
+    // Post-classification validation: downgrade spurious order_tracking from Naive Bayes
+    if (
+      resolvedIntent === 'order_tracking' &&
+      classification.method === 'naive_bayes_classifier' &&
+      !currentContext.pendingQuestion
+    ) {
+      const lowerText = userText.toLowerCase();
+      const ORDER_DOMAIN_KEYWORDS = ['order', 'package', 'shipment', 'tracking', 'delivery', 'parcel', 'shipped', 'deliver', 'ship'];
+      const hasOrderKeyword = ORDER_DOMAIN_KEYWORDS.some(kw => lowerText.includes(kw));
+      const hasDigits = /\d/.test(userText);
+
+      if (!hasOrderKeyword && !hasDigits) {
+        resolvedIntent = 'fallback_scenario';
+      }
+    }
 
     // Handle bare "no"/"nope" as farewell ONLY when no active multi-turn flow
     if (!currentContext.pendingQuestion) {
@@ -71,6 +87,22 @@ export class AgentService {
       } else if (currentContext.pendingQuestion === 'defect_order_number' || currentContext.pendingQuestion === 'delivered_order_action') {
         resolvedIntent = 'defect_replacement';
       }
+    }
+
+    // Clear stale orderId when user starts an unrelated flow
+    const ORDER_RELATED_INTENTS: IntentType[] = [
+      'order_tracking', 'order_cancellation', 'defect_replacement',
+      'shipping_info', 'order_disambiguation', 'order_issue_clarification'
+    ];
+    const ORDER_PENDING_QUESTIONS = ['order_number', 'cancel_', 'defect_order_number', 'delivered_order_action'];
+    const hasPendingOrderFlow = currentContext.pendingQuestion &&
+      ORDER_PENDING_QUESTIONS.some(p => currentContext.pendingQuestion!.startsWith(p));
+    if (
+      currentContext.orderId &&
+      !ORDER_RELATED_INTENTS.includes(resolvedIntent) &&
+      !hasPendingOrderFlow
+    ) {
+      currentContext.orderId = undefined;
     }
 
     // 2. Layer 2: Entity Extraction & Slot Filling
@@ -119,11 +151,18 @@ export class AgentService {
       finalContext.consecutiveFallbacks = 0;
     }
 
-    // Proactive escalation: after 2+ consecutive fallbacks, offer live agent strongly
+    // Proactive escalation: after 2 consecutive fallbacks offer live agent, after 3 auto-connect
     let finalMessage = renderResult.message;
     let finalCard = renderResult.card;
     let finalQuickReplies = renderResult.quickReplies;
-    if ((finalContext.consecutiveFallbacks || 0) >= 2 && resolvedIntent !== 'human_handoff') {
+    if ((finalContext.consecutiveFallbacks || 0) >= 3 && resolvedIntent !== 'human_handoff') {
+      const handoffResult = responseMatrix.renderHumanHandoff(userText);
+      finalMessage = handoffResult.message;
+      finalCard = handoffResult.card;
+      finalQuickReplies = handoffResult.quickReplies;
+      finalContext = handoffResult.newContext || {};
+      finalContext.consecutiveFallbacks = 0;
+    } else if ((finalContext.consecutiveFallbacks || 0) === 2 && resolvedIntent !== 'human_handoff') {
       finalMessage = `I can see I'm not quite understanding what you need, and I apologize for the inconvenience.\n\nWould you like me to **connect you with a Live Agent** who can assist you directly? Or you can try rephrasing your question — I'm best with order tracking, returns, gear recommendations, and shipping info.`;
       finalCard = {
         type: 'fallback_help',

@@ -290,9 +290,13 @@ export class IntentClassifier {
       if (
         lower === 'menu' ||
         lower === 'main menu' ||
+        lower === 'exit' ||
+        lower === 'leave' ||
         lower.includes('return to main menu') ||
         lower.includes('back to bot') ||
-        lower.includes('exit agent')
+        lower.includes('back to menu') ||
+        lower.includes('exit agent') ||
+        lower.includes('go back')
       ) {
         return {
           intent: 'main_menu',

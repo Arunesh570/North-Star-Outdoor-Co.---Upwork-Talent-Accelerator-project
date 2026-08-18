@@ -42,7 +42,7 @@ export class EntityExtractor {
    */
   public extractOrderId(text: string, context?: DialogueContext): string | null {
     // 1. Direct regex match: e.g. "#111", "order 222", "333", "ORD-111"
-    const digitMatch = text.match(/(?:#|order\s*#?|package\s*#?|ordr\s*#?)?\s*(\d{3,})\b/i);
+    const digitMatch = text.match(/(?:#|order\s*#?|package\s*#?|ordr\s*#?)?\s*(\d{3})\b/i);
     if (digitMatch && digitMatch[1]) {
       return digitMatch[1];
     }

@@ -84,12 +84,13 @@ export const App: React.FC = () => {
 
     try {
       let enrichedText = text;
-      if (pendingFlow === 'track_order') {
-        enrichedText = `Track my order #${text.replace(/[^0-9]/g, '') || text}`;
-      } else if (pendingFlow === 'return') {
-        enrichedText = `I want to start a return for order #${text.replace(/[^0-9]/g, '') || text}`;
-      } else if (pendingFlow === 'replacement') {
-        enrichedText = `I want to exchange or replace an item from order #${text.replace(/[^0-9]/g, '') || text}`;
+      const extractedDigits = text.replace(/[^0-9]/g, '');
+      if (pendingFlow === 'track_order' && extractedDigits.length >= 3) {
+        enrichedText = `Track my order #${extractedDigits}`;
+      } else if (pendingFlow === 'return' && extractedDigits.length >= 3) {
+        enrichedText = `I want to start a return for order #${extractedDigits}`;
+      } else if (pendingFlow === 'replacement' && extractedDigits.length >= 3) {
+        enrichedText = `I want to exchange or replace an item from order #${extractedDigits}`;
       }
       setPendingFlow(null);
 

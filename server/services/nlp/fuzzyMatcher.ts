@@ -312,7 +312,7 @@ export class LocalFuzzyMatcher {
    * Extracts digits or spelled out numbers from noisy strings.
    */
   public extractFuzzyOrderNumber(text: string): string | null {
-    const digitMatch = text.match(/(?:#|\b)?\s*(\d{3,})\b/);
+    const digitMatch = text.match(/(?:#|\b)?\s*(\d{3})\b/);
     if (digitMatch) return digitMatch[1];
 
     const lower = text.toLowerCase();

@@ -18,8 +18,18 @@ export class ResponseMatrix {
     userText: string
   ): TemplateRenderResult {
     // 1. Check if user is currently inside a Live Agent session
-    if (context.isLiveAgentState && intent !== 'main_menu') {
-      return this.renderLiveAgentChat(userText);
+    if (context.isLiveAgentState) {
+      const lowerText = userText.toLowerCase().trim();
+      const EXPLICIT_EXIT_PHRASES = [
+        'menu', 'main menu', 'return to main menu', 'back to bot',
+        'exit agent', 'exit', 'leave', 'go back', 'back to menu'
+      ];
+      const isExplicitExit = EXPLICIT_EXIT_PHRASES.some(
+        phrase => lowerText === phrase || lowerText.includes(phrase)
+      );
+      if (!isExplicitExit) {
+        return this.renderLiveAgentChat(userText);
+      }
     }
 
     // 2. Route to specialized deterministic template handlers
@@ -112,6 +122,15 @@ How can I help you on your trail today?`;
     const orderId = entities.orderId || context.orderId;
 
     if (!orderId) {
+      if (context.pendingQuestion === 'order_number') {
+        return {
+          message: "I didn't recognize a valid order number in that. Our order numbers are 3 digits — for example **#111**, **#222**, or **#333**. Could you try again?",
+          quickReplies: ['Order #111', 'Order #222', 'Order #333', 'Return to Main Menu'],
+          newContext: {
+            pendingQuestion: 'order_number'
+          }
+        };
+      }
       return {
         message: 'What is your **order number**? (e.g. **#111**, **#222**, or **#333**)',
         quickReplies: ['Order #111', 'Order #222', 'Order #333', 'Return to Main Menu'],
@@ -164,7 +183,8 @@ How can I help you on your trail today?`;
           },
           quickReplies: ['Help with Sizing / Exchange', 'Check Return Policy', 'Track another order', 'Return to Main Menu'],
           newContext: {
-            orderId: '333'
+            orderId: '333',
+            pendingQuestion: 'delivered_order_action'
           }
         };
       }
@@ -464,6 +484,35 @@ Here are the verified specifications and overview for the **${matchedProd.name}*
 
     // Step 2: Specific condition / activity is specified -> return tailored recommendation
     if (hasSpecificCondition && (context.pendingQuestion === 'recommendation_activity' || entities.categoryTerm || lower.includes('for a') || lower.includes('for rainy') || lower.includes('for cold') || lower.includes('for camp') || lower.includes('for trek'))) {
+
+      // Validate activity input when in recommendation flow — reject gibberish
+      if (context.pendingQuestion === 'recommendation_activity') {
+        const RECOGNIZED_ACTIVITY_KEYWORDS = [
+          'rain', 'wet', 'storm', 'jacket', 'cold', 'winter', 'fleece', 'layer',
+          'camp', 'tent', 'overnight', 'shelter', 'backpack', 'pack', 'multi-day',
+          'trek', 'boot', 'shoe', 'foot', 'rocky', 'hike', 'hiking', 'trail',
+          'snow', 'ice', 'mountain', 'alpine', 'climb', 'gear', 'outdoor',
+          'adventure', 'weather', 'sleep', 'bag', 'warm', 'waterproof', 'dry'
+        ];
+        const hasRecognizedKeyword = RECOGNIZED_ACTIVITY_KEYWORDS.some(kw => lower.includes(kw));
+
+        if (!hasRecognizedKeyword) {
+          return {
+            message: `I didn't quite catch that — could you tell me what kind of adventure or weather conditions you're planning for?\n\nFor example: *rainy trail hiking*, *cold weather layering*, *overnight camping*, *multi-day backpacking*, or *rocky alpine footwear*.`,
+            quickReplies: [
+              'Rainy & Wet Trail Hiking',
+              'Cold Weather & Winter Layering',
+              'Weekend Overnight Camping',
+              'Multi-Day Backpacking Trek',
+              'Rocky Alpine Footwear'
+            ],
+            newContext: {
+              pendingQuestion: 'recommendation_activity'
+            }
+          };
+        }
+      }
+
       let categoryName = 'Apparel';
       let products: Product[] = [];
       let advice = '';
@@ -766,9 +815,9 @@ You can chat here with our team, or click **Return to Main Menu** below at any t
       },
       quickReplies: [
         '↩️ Return to Main Menu',
-        'Check Order #111',
-        'Check Order #222',
-        'Check Order #333'
+        'I have a billing question',
+        'I need help with a return',
+        'My issue is resolved'
       ],
       newContext: {
         isLiveAgentState: true
@@ -1147,8 +1196,8 @@ Feel free to leave any extra details, or click **Return to Main Menu** below to 
       message,
       quickReplies: [
         '↩️ Return to Main Menu',
-        'Track an Order',
-        'Check Return Policy'
+        'My issue is resolved',
+        'I have another question'
       ],
       newContext: {
         isLiveAgentState: true
