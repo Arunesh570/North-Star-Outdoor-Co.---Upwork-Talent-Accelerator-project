@@ -94,6 +94,7 @@ export interface ChatRequest {
   conversationId?: string;
   context?: {
     pendingQuestion?: string;
+    pendingRetries?: number;
     isLiveAgentState?: boolean;
     orderId?: string;
     consecutiveFallbacks?: number;
@@ -105,6 +106,7 @@ export interface ChatResponse {
   detectedIntent?: string;
   newContext?: {
     pendingQuestion?: string;
+    pendingRetries?: number;
     isLiveAgentState?: boolean;
     orderId?: string;
     consecutiveFallbacks?: number;

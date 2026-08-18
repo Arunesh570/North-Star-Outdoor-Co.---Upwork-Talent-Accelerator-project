@@ -98,14 +98,6 @@ export const HandoffCard: React.FC<HandoffCardProps> = ({
             <ArrowLeft className="h-3 w-3" />
             <span>Main Menu</span>
           </button>
-          <button
-            onClick={isActive ? () => onActionClick('Track Order #111') : undefined}
-            disabled={!isActive}
-            className="rounded-full px-3.5 py-1 text-xs font-medium border transition-all disabled:opacity-35 disabled:pointer-events-none hover:opacity-80"
-            style={{ background: 'var(--chip-bg)', borderColor: 'var(--chip-border)', color: 'var(--chip-text)' }}
-          >
-            Track Order #111
-          </button>
         </div>
       )}
     </div>

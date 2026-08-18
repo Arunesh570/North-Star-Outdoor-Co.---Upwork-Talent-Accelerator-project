@@ -33,6 +33,7 @@ export type CancelChoice = 'size_change' | 'cancel_entirely' | 'keep_order' | 'c
 
 export interface ExtractedEntities {
   orderId?: string;
+  multipleOrderIds?: string[];
   email?: string;
   productTerm?: string;
   categoryTerm?: string;
@@ -58,6 +59,7 @@ export interface FuzzyMatchResult<T = unknown> {
 
 export interface DialogueContext {
   pendingQuestion?: string;
+  pendingRetries?: number;
   isLiveAgentState?: boolean;
   orderId?: string;
   subStep?: string;

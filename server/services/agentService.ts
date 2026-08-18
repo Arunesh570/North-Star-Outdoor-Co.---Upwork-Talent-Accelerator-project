@@ -25,6 +25,7 @@ export class AgentService {
     const currentContext: DialogueContext = {
       isLiveAgentState: request.context?.isLiveAgentState ?? false,
       pendingQuestion: request.context?.pendingQuestion,
+      pendingRetries: request.context?.pendingRetries ?? 0,
       orderId: request.context?.orderId,
       consecutiveFallbacks: request.context?.consecutiveFallbacks ?? 0,
     };
@@ -66,6 +67,49 @@ export class AgentService {
       }
     }
 
+    // Disambiguation: when classifier is ambiguous and no pending flow, ask user to clarify
+    const SKIP_DISAMBIGUATION: IntentType[] = ['main_menu', 'gratitude_farewell', 'out_of_scope', 'fallback_scenario'];
+    if (
+      classification.isAmbiguous &&
+      classification.method === 'naive_bayes_classifier' &&
+      !currentContext.pendingQuestion &&
+      !SKIP_DISAMBIGUATION.includes(resolvedIntent)
+    ) {
+      const sorted = Object.entries(classification.scores)
+        .filter(([k]) => !SKIP_DISAMBIGUATION.includes(k as IntentType))
+        .sort((a, b) => b[1] - a[1]);
+      if (sorted.length >= 2 && sorted[0][1] - sorted[1][1] < 0.15) {
+        const INTENT_LABELS: Record<string, string> = {
+          order_tracking: 'Track an Order',
+          return_exchange: 'Returns & Exchanges',
+          order_cancellation: 'Cancel an Order',
+          product_recommendation: 'Gear Recommendations',
+          shipping_info: 'Shipping Speeds',
+          human_handoff: 'Connect with Live Agent',
+          defect_replacement: 'Replace Damaged Item',
+          product_specs_inquiry: 'Product Specifications',
+          pricing_inquiry: 'Product Pricing',
+          store_info_contact: 'Store Contact Info',
+          warranty_inquiry: 'Warranty Information'
+        };
+        const top2 = sorted.slice(0, 3).map(([k]) => INTENT_LABELS[k] || k).filter(Boolean);
+        if (top2.length >= 2) {
+          const disambigMsg: ChatMessage = {
+            id: messageId,
+            role: 'assistant',
+            content: `I want to make sure I help you with the right thing. Did you mean:`,
+            timestamp,
+            quickReplies: [...top2, 'Return to Main Menu']
+          };
+          return {
+            message: disambigMsg,
+            detectedIntent: 'disambiguation',
+            newContext: currentContext
+          };
+        }
+      }
+    }
+
     // Handle bare "no"/"nope" as farewell ONLY when no active multi-turn flow
     if (!currentContext.pendingQuestion) {
       const bareNo = userText.toLowerCase().trim();
@@ -76,7 +120,7 @@ export class AgentService {
 
     // Multi-turn context overrides:
     // If we are waiting for a specific sub-turn response and the user didn't explicitly change topic
-    const breakoutIntents: IntentType[] = ['main_menu', 'gratitude_farewell'];
+    const breakoutIntents: IntentType[] = ['main_menu', 'gratitude_farewell', 'human_handoff'];
     if (currentContext.pendingQuestion && !breakoutIntents.includes(resolvedIntent)) {
       if (currentContext.pendingQuestion.startsWith('cancel_') || currentContext.pendingQuestion === 'confirm_cancel') {
         resolvedIntent = 'order_cancellation';
@@ -142,8 +186,15 @@ export class AgentService {
       userText
     );
 
-    // Track consecutive fallbacks for proactive escalation
+    // Track pending flow retries (bounded loops)
     let finalContext = renderResult.newContext || {};
+    if (finalContext.pendingQuestion && finalContext.pendingQuestion === currentContext.pendingQuestion) {
+      finalContext.pendingRetries = (currentContext.pendingRetries || 0) + 1;
+    } else {
+      finalContext.pendingRetries = 0;
+    }
+
+    // Track consecutive fallbacks for proactive escalation
     if (resolvedIntent === 'fallback_scenario' || resolvedIntent === 'out_of_scope') {
       const prevCount = currentContext.consecutiveFallbacks || 0;
       finalContext.consecutiveFallbacks = prevCount + 1;

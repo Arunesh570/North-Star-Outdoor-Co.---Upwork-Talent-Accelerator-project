@@ -20,6 +20,15 @@ export class ResponseMatrix {
     // 1. Check if user is currently inside a Live Agent session
     if (context.isLiveAgentState) {
       const lowerText = userText.toLowerCase().trim();
+
+      if (lowerText.includes('resolved') || lowerText.includes('issue is resolved')) {
+        return {
+          message: `Great to hear your issue is resolved! Thank you for chatting with our team.\n\nIs there anything else I can help you with?`,
+          quickReplies: ['Track an Order', 'Gear Recommendations', 'Return Policy & Link', 'Return to Main Menu'],
+          newContext: { isLiveAgentState: false }
+        };
+      }
+
       const EXPLICIT_EXIT_PHRASES = [
         'menu', 'main menu', 'return to main menu', 'back to bot',
         'exit agent', 'exit', 'leave', 'go back', 'back to menu'
@@ -119,10 +128,26 @@ How can I help you on your trail today?`;
    * Deterministic Template: Order Tracking
    */
   public renderOrderTracking(entities: ExtractedEntities, context: DialogueContext): TemplateRenderResult {
+    if (entities.multipleOrderIds && entities.multipleOrderIds.length > 1) {
+      const buttons = entities.multipleOrderIds.slice(0, 3).map(id => `Track Order #${id}`);
+      return {
+        message: `I found multiple order numbers in your message. Which one would you like me to check?`,
+        quickReplies: [...buttons, 'Return to Main Menu'],
+        newContext: {}
+      };
+    }
+
     const orderId = entities.orderId || context.orderId;
 
     if (!orderId) {
       if (context.pendingQuestion === 'order_number') {
+        if ((context.pendingRetries || 0) >= 2) {
+          return {
+            message: "I'm having trouble finding your order. Would you like to connect with a **Live Agent** who can look it up for you, or return to the main menu?",
+            quickReplies: ['Connect with Live Agent', 'Return to Main Menu'],
+            newContext: {}
+          };
+        }
         return {
           message: "I didn't recognize a valid order number in that. Our order numbers are 3 digits — for example **#111**, **#222**, or **#333**. Could you try again?",
           quickReplies: ['Order #111', 'Order #222', 'Order #333', 'Return to Main Menu'],
@@ -497,6 +522,22 @@ Here are the verified specifications and overview for the **${matchedProd.name}*
         const hasRecognizedKeyword = RECOGNIZED_ACTIVITY_KEYWORDS.some(kw => lower.includes(kw));
 
         if (!hasRecognizedKeyword) {
+          if ((context.pendingRetries || 0) >= 2) {
+            return {
+              message: `No worries! Here are all our gear categories — pick one that interests you, or I can connect you with a specialist:`,
+              quickReplies: [
+                'Rainy & Wet Trail Hiking',
+                'Cold Weather & Winter Layering',
+                'Weekend Overnight Camping',
+                'Multi-Day Backpacking Trek',
+                'Rocky Alpine Footwear',
+                'Connect with Live Agent'
+              ],
+              newContext: {
+                pendingQuestion: 'recommendation_activity'
+              }
+            };
+          }
           return {
             message: `I didn't quite catch that — could you tell me what kind of adventure or weather conditions you're planning for?\n\nFor example: *rainy trail hiking*, *cold weather layering*, *overnight camping*, *multi-day backpacking*, or *rocky alpine footwear*.`,
             quickReplies: [

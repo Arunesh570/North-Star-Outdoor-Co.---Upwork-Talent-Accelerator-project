@@ -12,6 +12,7 @@ export class EntityExtractor {
     const tokens = lower.split(/[\s,?.!#/:;]+/).filter(Boolean);
 
     const orderId = this.extractOrderId(raw, context);
+    const multipleOrderIds = this.extractMultipleOrderIds(raw);
     const email = this.extractEmail(raw);
     const cancelAction = this.extractCancelAction(lower);
     const confirmation = this.extractConfirmation(lower);
@@ -23,6 +24,7 @@ export class EntityExtractor {
 
     return {
       orderId: orderId || undefined,
+      multipleOrderIds: multipleOrderIds.length > 1 ? multipleOrderIds : undefined,
       email: email || undefined,
       productTerm: productTerm || undefined,
       categoryTerm: categoryTerm || undefined,
@@ -197,6 +199,15 @@ export class EntityExtractor {
     }
 
     return { productTerm, categoryTerm };
+  }
+
+  /**
+   * Extracts all distinct 3-digit order numbers from text.
+   */
+  public extractMultipleOrderIds(text: string): string[] {
+    const matches = [...text.matchAll(/\b(\d{3})\b/g)];
+    const unique = [...new Set(matches.map(m => m[1]))];
+    return unique;
   }
 
   /**
