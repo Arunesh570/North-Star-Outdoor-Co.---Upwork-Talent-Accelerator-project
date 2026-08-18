@@ -43,14 +43,19 @@ Below is a breakdown of what was fixed, what additional hardening was added, and
 
 These weren't requested but they close loopholes that could show up during deeper testing:
 
-- **Human handoff from any flow:** If a user is mid-conversation (e.g., being asked for an order number) and says "I need to speak with a live agent", it now works immediately instead of being trapped in the current flow.
-- **Bounded retries:** No more infinite re-prompts. After 3 total failed attempts in any flow (order number, recommendation activity), the bot offers an exit (main menu or live agent) instead of repeating the same question.
-- **"My issue is resolved":** Clicking this button during live agent now gracefully closes the session with a thank-you message, rather than echoing it back as agent chat.
-- **Context leaking prevention:** Previously, viewing Order #111 and then asking "what is your return policy" would accidentally show a return flow for #111. Now the stale order context gets cleared when entering unrelated flows.
+- **Topic-shift detection:** If a user is in a pending flow (e.g., being asked for an order number) and types something completely unrelated like "I want to order pizza" or "Tell me a joke", the bot now recognizes the topic shift, exits the flow gracefully, and handles the new message on its own merits. Previously, the bot would trap the user inside the current flow regardless of what they typed.
+- **Verb vs noun disambiguation:** "I want to order pizza" (verb: to purchase) is now correctly distinguished from "Tell me about my order" (noun: a placed order). The word "order" alone no longer triggers order tracking when used as a verb.
+- **Human handoff from any flow:** If a user is mid-conversation and says "I need to speak with a live agent", it now works immediately instead of being trapped in the current flow.
+- **Bounded retries:** No more infinite re-prompts. After 3 total failed attempts in any flow (order number, recommendation activity, cancellation), the bot offers an exit (main menu or live agent) instead of repeating the same question.
+- **Varied live agent responses:** The live agent no longer echoes the user's message back ("reviewing your notes on 'Hi'..."). It now rotates between 4 natural-sounding responses so the conversation doesn't feel robotic.
+- **"My issue is resolved":** Clicking this button during live agent now gracefully closes the session with a thank-you message.
+- **Product scope messaging:** If a user asks about something we don't sell (e.g., "pizza and ice cream" during recommendations), the bot clearly states "We specialize in outdoor apparel and camping gear" rather than a generic "I didn't understand."
+- **Context leaking prevention:** Viewing Order #111 and then asking "what is your return policy" no longer accidentally shows a return flow for #111.
 - **Multiple order numbers:** If someone types "is 111 or 222 shipped", the bot asks which one to check instead of silently picking the first.
 - **Disambiguation prompts:** When the classifier is genuinely unsure between two intents (low confidence gap), it asks "Did you mean X or Y?" with buttons instead of guessing wrong.
-- **Regex tightening:** Order numbers now match exactly 3 digits. Previously, zip codes (80302) or phone numbers would get accidentally extracted as order IDs.
-- **Escalation loop cap:** After 3 consecutive misunderstandings, the bot auto-connects to a live agent instead of repeating "Would you like to connect with an agent?" indefinitely.
+- **Regex tightening:** Order numbers now match exactly 3 digits. Zip codes and phone numbers no longer get accidentally extracted as order IDs.
+- **Escalation loop cap:** After 3 consecutive misunderstandings, the bot auto-connects to a live agent instead of repeating the offer indefinitely.
+- **Cancellation flow validation:** Typing unrelated text during the cancellation order-number step no longer gets trapped in a loop.
 
 ---
 
@@ -72,13 +77,21 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Try the exact scenarios from your feedback:
-1. Type "Where is my abc?" - should get the fallback message
-2. Go through product recommendations, type random text - should re-prompt
-3. Connect to live agent, type "Hi", "Hello", "Good morning" - should stay connected
+Open http://localhost:5173. No API keys or external services needed.
+
+**Your 3 reported issues:**
+1. Type "Where is my abc?" - fallback message ("outside what I can help with")
+2. Start product recommendations, type "pizza and ice cream" - bot says "we specialize in outdoor gear" and re-prompts
+3. Connect to live agent, type "Hi", "Hello", "Good morning", product questions - all stay connected
 4. Type "menu" or "exit" to leave live agent
 
-No API keys or external services needed.
+**Additional scenarios you can try:**
+5. Type "I want to order pizza" - correctly identified as off-topic, not order tracking
+6. During order number prompt, type "Tell me a joke" - bot escapes the flow instead of trapping you
+7. Type gibberish 3 times in a row - auto-connects to live agent on the 3rd attempt
+8. Click "My issue is resolved" during live agent - graceful session close
+9. Type "is 111 or 222 shipped" - asks which order to check
+10. All 4 core use cases work: Order Tracking (#111/#222/#333/invalid), Returns (30-day policy + link), Product Recommendations (2-step flow), Human Handoff (with return to menu)
 
 ---
 
