@@ -120,10 +120,17 @@ src/                         Frontend (React + TypeScript + Tailwind)
 
 The NLP pipeline handles natural language variations through 4 layers:
 
-1. **Deterministic Patterns** — High-precision regex for exact matches
+1. **Deterministic Patterns** — High-precision regex for exact matches (always wins when it fires)
 2. **Semantic Vectorizer** — TF-IDF cosine similarity against intent centroids
-3. **Naive Bayes Classifier** — Statistical classification with Laplace smoothing
+3. **Naive Bayes Classifier** — Statistical classification with Laplace smoothing + post-classification validation
 4. **Fuzzy Matching** — Damerau-Levenshtein + Jaro-Winkler for typo tolerance
+
+Additional intelligence:
+- **Topic-shift detection** — Recognizes when a user says something unrelated mid-flow and escapes gracefully
+- **Verb vs noun disambiguation** — "I want to order pizza" (verb) vs "my order #111" (noun)
+- **Disambiguation prompts** — When the classifier is unsure, asks "Did you mean X or Y?" instead of guessing
+- **Bounded retries** — Never loops forever; offers escape after 3 failed attempts
+- **Auto-escalation** — 3 consecutive misunderstandings auto-connects to live agent
 
 Supports variations like:
 - "Where is my order?" / "Track my package" / "Where's my order #111?"
